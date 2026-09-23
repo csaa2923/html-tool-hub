@@ -1,0 +1,2 @@
+import { sign } from './_auth.js';
+export default function handler(req,res){if(req.method!=='POST')return res.status(405).end();const {username,password}=req.body||{};if(username===process.env.USER_NAME&&password===process.env.USER_PASSWORD)return res.json({role:'user',token:sign('user')});if(username===process.env.ADMIN_NAME&&password===process.env.ADMIN_PASSWORD)return res.json({role:'admin',token:sign('admin')});return res.status(401).json({error:'Ungültige Anmeldung'})}
