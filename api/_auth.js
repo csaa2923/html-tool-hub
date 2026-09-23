@@ -1,0 +1,4 @@
+import crypto from 'node:crypto';
+const secret=()=>process.env.AUTH_SECRET||'';
+export function sign(role){const exp=Date.now()+8*60*60*1000;const body=Buffer.from(JSON.stringify({role,exp})).toString('base64url');const sig=crypto.createHmac('sha256',secret()).update(body).digest('base64url');return body+'.'+sig}
+export function verify(req){try{const token=(req.headers.authorization||'').replace(/^Bearer /,'');const [body,sig]=token.split('.');const good=crypto.createHmac('sha256',secret()).update(body).digest('base64url');if(!crypto.timingSafeEqual(Buffer.from(sig),Buffer.from(good)))return null;const d=JSON.parse(Buffer.from(body,'base64url'));return d.exp>Date.now()?d:null}catch{return null}}
