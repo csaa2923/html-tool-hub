@@ -1,3 +1,4 @@
+import { verify } from './_auth.js';
 import { list, put } from '@vercel/blob';
 
 const FILE = 'html-tool-hub/tools.json';
@@ -19,9 +20,11 @@ async function writeTools(tools) {
 }
 export default async function handler(req, res) {
   res.setHeader('Cache-Control','no-store');
+  const auth=verify(req); if(!auth) return res.status(401).json({error:'Nicht angemeldet'});
   try {
-    if (req.method === 'GET') return res.status(200).json(await readTools());
+    if (req.method === 'GET') { const all=await readTools(); return res.status(200).json(auth.role==='admin'?all:all.filter(x=>x.visibility!=='private')); }
     if (req.method !== 'POST') return res.status(405).json({error:'Method not allowed'});
+    if(auth.role!=='admin') return res.status(403).json({error:'Nur Admin darf Änderungen durchführen'});
     const { action, tool, id } = req.body || {};
     let tools = await readTools();
     if (action === 'add') {
